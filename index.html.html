@@ -1,0 +1,365 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100%;overflow-x:hidden;background:#060418}
+#app{position:relative;min-height:100vh;width:100%}
+
+#bg{position:fixed;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0;transition:background-image .5s}
+#ov{position:fixed;inset:0;background:rgba(4,2,18,.65);z-index:1;pointer-events:none;transition:background .4s}
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:998}
+
+/* ── MODAL CONFIG ── */
+#modal-bg{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s}
+#modal-bg.open{opacity:1;pointer-events:all}
+#modal{background:rgba(12,8,45,.96);border:1px solid rgba(245,200,66,.35);border-radius:22px;padding:2rem 2rem 1.5rem;width:min(420px,92vw);position:relative;transform:scale(.92) translateY(20px);transition:transform .3s}
+#modal-bg.open #modal{transform:scale(1) translateY(0)}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#f5c842;letter-spacing:.06em;margin-bottom:1.4rem;display:flex;align-items:center;gap:.5rem}
+.mfield{margin-bottom:1.1rem}
+.mfield label{display:block;font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:.4rem;font-family:Nunito,sans-serif}
+.mfield input[type=number]{width:100%;padding:.6rem .85rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:11px;color:#fff;font-family:Nunito,sans-serif;font-size:1rem;font-weight:700;outline:none;transition:border-color .2s}
+.mfield input[type=number]:focus{border-color:#f5c842;background:rgba(255,255,255,.13)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+.upl-btn{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;background:rgba(245,200,66,.12);border:1px solid rgba(245,200,66,.5);border-radius:11px;color:#f5c842;font-family:Nunito,sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;transition:background .2s;width:100%}
+.upl-btn:hover{background:rgba(245,200,66,.25)}
+.upl-btn svg{flex-shrink:0}
+#bg-fname{font-size:.78rem;color:rgba(255,255,255,.45);margin-top:.4rem;font-family:Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.ov-row{display:flex;align-items:center;gap:.75rem;margin-top:0}
+.ov-row label{font-size:.78rem;color:rgba(255,255,255,.6);font-weight:700;white-space:nowrap;font-family:Nunito,sans-serif}
+.ov-row input[type=range]{flex:1;accent-color:#f5c842}
+.ov-row span{font-size:.78rem;font-weight:800;color:#f5c842;min-width:2.4rem;text-align:right;font-family:Nunito,sans-serif}
+
+.modal-sep{height:1px;background:rgba(255,255,255,.1);margin:1.2rem 0}
+
+.btn-ok{width:100%;padding:.75rem;background:#f5c842;border:none;border-radius:13px;color:#060418;font-family:Nunito,sans-serif;font-size:1rem;font-weight:900;cursor:pointer;letter-spacing:.04em;transition:background .2s,transform .12s;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.btn-ok:hover{background:#f0bb20}
+.btn-ok:active{transform:scale(.97)}
+.btn-close-modal{position:absolute;top:1rem;right:1rem;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;font-family:sans-serif}
+.btn-close-modal:hover{background:rgba(255,255,255,.2)}
+
+/* ── MAIN STAGE ── */
+#stage{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1rem 2rem}
+
+/* botón engranaje */
+#btn-cfg{position:fixed;top:1.1rem;right:1.1rem;z-index:50;width:48px;height:48px;border-radius:50%;background:rgba(245,200,66,.15);border:1.5px solid rgba(245,200,66,.5);color:#f5c842;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .4s;backdrop-filter:blur(8px)}
+#btn-cfg:hover{background:rgba(245,200,66,.3);transform:rotate(45deg)}
+#btn-cfg svg{width:22px;height:22px}
+
+/* título */
+#main-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,8vw,4rem);letter-spacing:.07em;color:#f5c842;text-shadow:0 0 50px rgba(245,200,66,.55);text-align:center;line-height:1;margin-bottom:.25rem}
+#range-label{font-size:.82rem;color:rgba(255,255,255,.5);text-align:center;font-family:Nunito,sans-serif;font-weight:700;letter-spacing:.05em;margin-bottom:1.2rem}
+
+/* bombo */
+#bombo-canvas{display:block;width:220px;height:220px;margin:0 auto}
+
+/* número */
+#rnum{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,18vw,8rem);line-height:1;color:#f5c842;text-align:center;text-shadow:0 0 60px rgba(245,200,66,.8);min-width:220px;margin:.3rem 0}
+#rnum.counting{animation:cnt .08s ease infinite alternate}
+@keyframes cnt{from{transform:scale(.97)}to{transform:scale(1.04)}}
+#rnum.reveal{animation:rev .5s cubic-bezier(.17,.67,.35,1.45) forwards}
+@keyframes rev{0%{transform:scale(.15) rotate(-18deg);opacity:0;filter:blur(12px)}60%{transform:scale(1.18) rotate(2deg);opacity:1;filter:blur(0)}100%{transform:scale(1) rotate(0)}}
+.rlabel{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);font-family:Nunito,sans-serif;text-align:center}
+
+/* controles */
+.ctrls{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem}
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.65rem 1.4rem;border-radius:13px;font-family:Nunito,sans-serif;font-size:.92rem;font-weight:900;cursor:pointer;border:none;outline:none;transition:transform .12s,opacity .2s,box-shadow .2s;letter-spacing:.02em}
+.btn:active{transform:scale(.95)}
+.btn:disabled{opacity:.32;cursor:not-allowed;transform:none}
+.btn-primary{background:#f5c842;color:#060418;box-shadow:0 4px 28px rgba(245,200,66,.45)}
+.btn-primary:hover:not(:disabled){background:#f0bb20;box-shadow:0 6px 36px rgba(245,200,66,.65)}
+.btn-secondary{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.btn-secondary:hover:not(:disabled){background:rgba(255,255,255,.22)}
+.btn-danger{background:rgba(200,35,35,.8);color:#fff}
+.btn-danger:hover:not(:disabled){background:#dc3232}
+
+.auto-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:.2rem}
+.auto-row label{display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer;font-family:Nunito,sans-serif;font-weight:700}
+.auto-row input[type=checkbox]{accent-color:#f5c842;width:15px;height:15px}
+.auto-row input[type=number]{width:80px;padding:.35rem .6rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;color:#fff;font-family:Nunito,sans-serif;font-size:.82rem;font-weight:700;outline:none}
+
+/* stats + historial */
+.bottom-strip{display:flex;flex-direction:column;align-items:center;gap:.65rem;width:100%;max-width:680px;margin-top:.8rem}
+.stats-row{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:.45rem .9rem;text-align:center;backdrop-filter:blur(6px)}
+.sval{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f5c842;line-height:1}
+.slbl{font-size:.65rem;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-family:Nunito,sans-serif}
+
+#hist-wrap{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:.7rem 1rem;width:100%;backdrop-filter:blur(8px)}
+.hist-title{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem;font-family:Nunito,sans-serif}
+#hist{display:flex;flex-wrap:wrap;gap:.4rem;max-height:100px;overflow-y:auto}
+#hist::-webkit-scrollbar{width:3px}
+#hist::-webkit-scrollbar-thumb{background:#f5c842;border-radius:2px}
+.hbadge{border-radius:7px;padding:.2rem .55rem;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.04em;animation:bin .28s ease;border:1px solid}
+@keyframes bin{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.hempty{font-size:.78rem;color:rgba(255,255,255,.35);font-family:Nunito,sans-serif;font-style:italic}
+</style>
+
+<h2 style="position:absolute;left:-9999px">Sorteo de balotas con bombo animado</h2>
+
+<div id="app">
+  <div id="bg"></div>
+  <div id="ov"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- BOTÓN ENGRANAJE -->
+  <button id="btn-cfg" onclick="openModal()" title="Configuración">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <!-- MODAL CONFIGURACIÓN -->
+  <div id="modal-bg" onclick="handleModalBgClick(event)">
+    <div id="modal">
+      <button class="btn-close-modal" onclick="closeModal()">✕</button>
+      <div class="modal-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuración
+      </div>
+
+      <div class="row2">
+        <div class="mfield"><label>Número inicial</label><input type="number" id="nmin" value="1" min="0" max="9999"></div>
+        <div class="mfield"><label>Número final</label><input type="number" id="nmax" value="75" min="1" max="9999"></div>
+      </div>
+
+      <div class="modal-sep"></div>
+
+      <div class="mfield">
+        <label>Imagen de fondo</label>
+        <label class="upl-btn" for="bgfile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Seleccionar imagen
+        </label>
+        <input type="file" id="bgfile" accept="image/*">
+        <div id="bg-fname">Sin imagen seleccionada</div>
+      </div>
+
+      <div class="mfield">
+        <label>Oscuridad del fondo</label>
+        <div class="ov-row">
+          <input type="range" id="ovrange" min="0" max="92" value="65" step="1">
+          <span id="ovval">65%</span>
+        </div>
+      </div>
+
+      <div class="modal-sep"></div>
+
+      <button class="btn-ok" onclick="applyConfig()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Aplicar y comenzar
+      </button>
+    </div>
+  </div>
+
+  <!-- STAGE PRINCIPAL -->
+  <div id="stage">
+    <div id="main-title">🎱 Sorteo de Balotas</div>
+    <div id="range-label">Del 1 al 75</div>
+
+    <canvas id="bombo-canvas" width="220" height="220"></canvas>
+
+    <div class="rlabel" style="margin-top:.6rem">Número sorteado</div>
+    <div id="rnum">—</div>
+
+    <div class="ctrls">
+      <button class="btn btn-primary" id="btn-s" onclick="sortear()">🎱 ¡Sortear!</button>
+      <button class="btn btn-secondary" id="btn-p" onclick="toggleAuto()" style="display:none">⏸ Pausar</button>
+      <button class="btn btn-danger" onclick="reiniciar()">🔄 Reiniciar</button>
+    </div>
+
+    <div class="auto-row" style="margin-top:.5rem">
+      <label><input type="checkbox" id="chkauto"> Sorteo automático</label>
+      <label style="color:rgba(255,255,255,.6);font-size:.8rem;font-family:Nunito;font-weight:700">Intervalo (seg)
+        <input type="number" id="aint" value="4" min="1" max="60">
+      </label>
+    </div>
+
+    <div class="bottom-strip">
+      <div class="stats-row">
+        <div class="stat"><div class="sval" id="st-s">0</div><div class="slbl">Sorteados</div></div>
+        <div class="stat"><div class="sval" id="st-r">75</div><div class="slbl">Restantes</div></div>
+        <div class="stat"><div class="sval" id="st-t">75</div><div class="slbl">Total</div></div>
+        <div class="stat"><div class="sval" id="st-p">0%</div><div class="slbl">Avance</div></div>
+      </div>
+      <div id="hist-wrap">
+        <div class="hist-title">Historial de números sorteados</div>
+        <div id="hist"><span class="hempty">Aún no hay números sorteados</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e91e63','#00bcd4','#ff5722','#8bc34a','#ff9800','#607d8b','#c0392b','#16a085'];
+let sorteados=[],disponibles=[],autoTmr=null,spinning=false,bombAngle=0,balls=[],cntIv=null,pendingBg=null,pendingOv=65;
+
+// ── MODAL ────────────────────────────────────────────────
+function openModal(){document.getElementById('modal-bg').classList.add('open')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+function handleModalBgClick(e){if(e.target===document.getElementById('modal-bg'))closeModal()}
+
+function applyConfig(){
+  const mn=parseInt(document.getElementById('nmin').value)||1;
+  const mx=parseInt(document.getElementById('nmax').value)||75;
+  const lo=Math.min(mn,mx),hi=Math.max(mn,mx);
+  document.getElementById('range-label').textContent=`Del ${lo} al ${hi}`;
+  if(pendingBg){
+    document.getElementById('bg').style.backgroundImage=`url(${pendingBg})`;
+  }
+  const ov=parseInt(document.getElementById('ovrange').value)||65;
+  document.getElementById('ov').style.background=`rgba(4,2,18,${ov/100})`;
+  closeModal();
+  reiniciarSilencioso();
+}
+
+// ── AUDIO ────────────────────────────────────────────────
+const AC=new(window.AudioContext||window.webkitAudioContext)();
+function drum(t,v=.6,p=1){
+  const b=AC.createBuffer(1,AC.sampleRate*.18,AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++){const s=i/AC.sampleRate,e=Math.exp(-s*28)*v;d[i]=(Math.random()*2-1)*e*.4+Math.sin(6.28*s*180*p*Math.exp(-s*15))*e*.9+Math.sin(6.28*s*90*p*Math.exp(-s*20))*e*.5}
+  const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);s.connect(g);g.connect(AC.destination);s.start(t);
+}
+function snare(t,v=.4){
+  const b=AC.createBuffer(1,AC.sampleRate*.12,AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++){const s=i/AC.sampleRate,e=Math.exp(-s*40)*v;d[i]=(Math.random()*2-1)*e}
+  const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);s.connect(g);g.connect(AC.destination);s.start(t);
+}
+function fanfare(){
+  [523,659,784,1047].forEach((f,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+i*.12;
+    o.frequency.value=f;o.type='triangle';g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.42);
+    o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.45);
+  });
+  setTimeout(()=>{const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.frequency.value=1047;o.type='sine';g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+.65);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.68)},500);
+}
+function suspense(ms){
+  const now=AC.currentTime,s=ms/1000;
+  [0,.25,.5,.72,.9,1.05,1.17,1.26,1.33,1.39,1.44,1.48,1.51,1.53,1.55].forEach((f,i)=>{
+    const t=now+(f/1.6)*s;if(t<now+s){drum(t,Math.min(.3+f*.5,.95),.8+f*.4);if(i>6)snare(t+.01,.15+f*.25)}
+  });
+}
+
+// ── CANVAS BOMBO ─────────────────────────────────────────
+const bc=document.getElementById('bombo-canvas'),c=bc.getContext('2d');
+const CX=110,CY=110,R=95,BR=13;
+function genBalls(){
+  balls=[];
+  const ns=disponibles.slice(0,Math.min(disponibles.length,20));
+  ns.forEach((n,i)=>balls.push({n,c:COLS[n%COLS.length],a:(i/ns.length)*Math.PI*2+Math.random()*.5,rx:.3+Math.random()*.6,ry:.25+Math.random()*.65}));
+}
+function drawBombo(){
+  c.clearRect(0,0,220,220);
+  c.save();c.beginPath();c.arc(CX,CY,R,0,Math.PI*2);c.fillStyle='rgba(5,3,25,.6)';c.fill();c.strokeStyle='rgba(255,255,255,.2)';c.lineWidth=1.5;c.stroke();c.restore();
+  c.save();c.beginPath();c.arc(CX,CY,R-2,0,Math.PI*2);c.clip();
+  for(const b of balls){
+    const bx=CX+(R-BR-7)*Math.cos(b.a+bombAngle)*b.rx,by=CY+(R-BR-7)*Math.sin(b.a+bombAngle)*b.ry;
+    const g=c.createRadialGradient(bx-BR*.35,by-BR*.35,BR*.08,bx,by,BR);
+    g.addColorStop(0,'rgba(255,255,255,.75)');g.addColorStop(.38,b.c);g.addColorStop(1,'rgba(0,0,0,.35)');
+    c.beginPath();c.arc(bx,by,BR,0,Math.PI*2);c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=6;c.fillStyle=g;c.fill();
+    c.shadowBlur=0;c.fillStyle='#fff';c.font='bold 9px Nunito';c.textAlign='center';c.textBaseline='middle';c.fillText(b.n,bx,by+.5);
+  }
+  c.restore();
+  c.save();c.translate(CX,CY);c.rotate(bombAngle);
+  for(let i=0;i<10;i++){const a=(i/10)*Math.PI*2;c.beginPath();c.moveTo(Math.cos(a)*42,Math.sin(a)*42);c.lineTo(Math.cos(a)*R,Math.sin(a)*R);c.strokeStyle='rgba(245,200,66,.13)';c.lineWidth=1.1;c.stroke()}
+  c.restore();
+  const sh=c.createRadialGradient(CX-30,CY-30,5,CX-18,CY-18,58);sh.addColorStop(0,'rgba(255,255,255,.2)');sh.addColorStop(1,'rgba(255,255,255,0)');
+  c.beginPath();c.arc(CX,CY,R,0,Math.PI*2);c.fillStyle=sh;c.fill();
+  c.beginPath();c.arc(CX,CY,7,0,Math.PI*2);c.fillStyle='rgba(245,200,66,.9)';c.fill();
+}
+function loop(){bombAngle+=spinning?.06:.003;drawBombo();requestAnimationFrame(loop)}
+
+// ── CONFETTI ─────────────────────────────────────────────
+const cv=document.getElementById('confetti-canvas'),ct=cv.getContext('2d');
+let cp=[];
+function confetti(){
+  cv.width=window.innerWidth;cv.height=window.innerHeight;cp=[];
+  for(let i=0;i<180;i++)cp.push({x:Math.random()*cv.width,y:-20,vx:(Math.random()-.5)*9,vy:Math.random()*5+3,c:COLS[Math.floor(Math.random()*COLS.length)],r:Math.random()*6+3,rot:Math.random()*360,rs:(Math.random()-.5)*9,g:.19,a:1});
+  animC();
+}
+function animC(){
+  if(!cp.length)return;ct.clearRect(0,0,cv.width,cv.height);
+  cp.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.rot+=p.rs;p.a-=.013;if(p.a<=0)return;ct.save();ct.globalAlpha=Math.max(0,p.a);ct.translate(p.x,p.y);ct.rotate(p.rot*Math.PI/180);ct.fillStyle=p.c;ct.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.8);ct.restore()});
+  cp=cp.filter(p=>p.a>0&&p.y<cv.height+30);
+  if(cp.length)requestAnimationFrame(animC);else ct.clearRect(0,0,cv.width,cv.height);
+}
+
+// ── SORTEO ────────────────────────────────────────────────
+function sortear(){
+  if(AC.state==='suspended')AC.resume();
+  if(!disponibles.length){alert('¡Se agotaron todos los números! Presioná Reiniciar.');return}
+  spinning=true;document.getElementById('btn-s').disabled=true;
+  const dur=2000;suspense(dur);
+  const el=document.getElementById('rnum');
+  el.classList.remove('reveal');el.classList.add('counting');
+  const mn=parseInt(document.getElementById('nmin').value)||1,mx=parseInt(document.getElementById('nmax').value)||75;
+  cntIv=setInterval(()=>{el.textContent=Math.floor(Math.random()*(mx-mn+1))+mn},65);
+  setTimeout(()=>{
+    spinning=false;clearInterval(cntIv);
+    const n=disponibles.pop();sorteados.push(n);genBalls();
+    el.classList.remove('counting');el.textContent=n;el.classList.add('reveal');
+    el.addEventListener('animationend',()=>el.classList.remove('reveal'),{once:true});
+    fanfare();confetti();updateUI();
+    document.getElementById('btn-s').disabled=false;
+  },dur);
+}
+
+// ── AUTO ──────────────────────────────────────────────────
+document.getElementById('chkauto').addEventListener('change',function(){
+  if(this.checked){document.getElementById('btn-p').style.display='';startAuto()}
+  else{stopAuto();document.getElementById('btn-p').style.display='none'}
+});
+function startAuto(){const s=(parseInt(document.getElementById('aint').value)||4)*1000;autoTmr=setInterval(()=>{if(!disponibles.length){stopAuto();return}sortear()},s)}
+function stopAuto(){clearInterval(autoTmr);autoTmr=null}
+function toggleAuto(){const b=document.getElementById('btn-p');if(autoTmr){stopAuto();b.textContent='▶ Reanudar'}else{startAuto();b.textContent='⏸ Pausar'}}
+
+// ── INIT ─────────────────────────────────────────────────
+function buildDisp(){
+  const mn=parseInt(document.getElementById('nmin').value)||1,mx=parseInt(document.getElementById('nmax').value)||75;
+  const lo=Math.min(mn,mx),hi=Math.max(mn,mx);
+  disponibles=[];for(let i=lo;i<=hi;i++)disponibles.push(i);
+  for(let i=disponibles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[disponibles[i],disponibles[j]]=[disponibles[j],disponibles[i]]}
+  sorteados=[];
+}
+function reiniciarSilencioso(){
+  stopAuto();document.getElementById('chkauto').checked=false;document.getElementById('btn-p').style.display='none';
+  buildDisp();genBalls();updateUI();
+  const el=document.getElementById('rnum');el.textContent='—';el.classList.remove('counting','reveal');
+}
+function reiniciar(){reiniciarSilencioso()}
+
+function updateUI(){
+  const mn=parseInt(document.getElementById('nmin').value)||1,mx=parseInt(document.getElementById('nmax').value)||75;
+  const tot=Math.max(mx,mn)-Math.min(mx,mn)+1,s=sorteados.length,r=disponibles.length,p=tot>0?Math.round(s/tot*100):0;
+  document.getElementById('st-s').textContent=s;document.getElementById('st-r').textContent=r;
+  document.getElementById('st-t').textContent=tot;document.getElementById('st-p').textContent=p+'%';
+  const h=document.getElementById('hist');
+  if(!sorteados.length){h.innerHTML='<span class="hempty">Aún no hay números sorteados</span>';return}
+  h.innerHTML='';
+  for(let i=sorteados.length-1;i>=0;i--){
+    const b=document.createElement('div');b.className='hbadge';
+    const col=COLS[sorteados[i]%COLS.length];b.style.background=col+'28';b.style.borderColor=col+'88';b.style.color=col;
+    b.textContent=sorteados[i];h.appendChild(b);
+  }
+}
+
+// ── IMAGEN DE FONDO ───────────────────────────────────────
+document.getElementById('bgfile').addEventListener('change',function(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=function(ev){
+    pendingBg=ev.target.result;
+    document.getElementById('bg-fname').textContent=f.name;
+  };
+  r.readAsDataURL(f);
+});
+document.getElementById('ovrange').addEventListener('input',function(){
+  pendingOv=this.value;document.getElementById('ovval').textContent=this.value+'%';
+});
+
+// ── ARRANQUE ─────────────────────────────────────────────
+document.getElementById('ov').style.background='rgba(4,2,18,0.65)';
+buildDisp();genBalls();updateUI();loop();
+openModal();
+</script>
